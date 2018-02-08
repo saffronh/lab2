@@ -227,7 +227,7 @@ generate an alternate solution without this property?
 Do so below in a new definition of zip.
 ......................................................................*)
 
-let rec zip (x: 'a list) (y: 'b list) : ('a option * 'b option) list =
+let rec zip (x: 'a list) (y: 'a list) : ('a option * 'a option) list =
   match x, y with
   | [], [] -> []
   | xhd :: xtl, yhd :: ytl -> (Some xhd, Some yhd) :: (zip xtl ytl)
