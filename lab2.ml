@@ -62,11 +62,9 @@ Using your uncurry function, define uncurried plus and times
 functions.
 ......................................................................*)
 
-let plus =
-  uncurry ( + ) ;;
+let plus = uncurry ( + ) ;;
 
-let times =
-  uncurry ( * ) ;;
+let times = uncurry ( * ) ;;
 
 (*......................................................................
 Exercise 3: Recall the prods function from Lab 1:
@@ -117,7 +115,8 @@ instead of an int.
 let rec max_list (lst : int list) : int option =
   match lst with
   | [] -> None
-  | hd1 :: hd2 :: tl -> if hd1 >= hd2 then max_list (hd1 :: tl) else max_list (hd2 :: tl)
+  | hd1 :: hd2 :: tl -> if hd1 >= hd2 then max_list (hd1 :: tl)
+                        else max_list (hd2 :: tl)
   | [x] -> Some x ;;
 
 (*......................................................................
