@@ -78,8 +78,8 @@ Now reimplement prods using map and your uncurried times function. Why
 do you need the uncurried times function?
 ......................................................................*)
 
-let prods (lst: (int * int) list) : int list =
-  List.map times lst ;;
+let prods  =
+  List.map times ;;
 
 (*======================================================================
 Part 2: Option types
@@ -227,12 +227,14 @@ generate an alternate solution without this property?
 Do so below in a new definition of zip.
 ......................................................................*)
 
-let rec zip (x: 'a list) (y: 'a list) : ('a option * 'a option) list =
+let rec zip (x: 'a list) (y: 'b list) : (('a * 'b) list) option =
   match x, y with
-  | [], [] -> []
-  | xhd :: xtl, yhd :: ytl -> (Some xhd, Some yhd) :: (zip xtl ytl)
-  | xhd :: xtl, [] -> (Some xhd, None) :: (zip xtl [])
-  | [], yhd :: ytl -> (None, Some yhd) :: (zip ytl []) ;;
+  | [], [] -> Some []
+  | xhd :: xtl, yhd :: ytl ->
+      (match zip xtl ytl with
+       | None -> None
+       | Some ztl -> Some ((xhd, yhd) :: ztl))
+  | _, _ -> None
 
 
 (*====================================================================
@@ -266,7 +268,7 @@ adjusted for the result type. Implement the maybe function.
 ......................................................................*)
 
 let maybe (f : 'a -> 'b) (x : 'a option) : 'b option =
-  failwith "maybe not implemented" ;;
+  match x with None -> None | Some a -> Some (f a) ;;
 
 (*......................................................................
 Exercise 13: Now reimplement dotprod to use the maybe function. (The
@@ -280,14 +282,17 @@ let sum : int list -> int =
   List.fold_left (+) 0 ;;
 
 let dotprod (a : int list) (b : int list) : int option =
-  failwith "dot_prod not implemented" ;;
+  maybe (fun pairs -> sum (prods pairs)) (zip a b) ;;
 
 (*......................................................................
 Exercise 14: Reimplement zip along the same lines, in zip_2 below.
 ......................................................................*)
 
 let rec zip_2 (x : int list) (y : int list) : ((int * int) list) option =
-  failwith "zip_2 not implemented" ;;
+  match x, y with
+  | [], [] -> Some []
+  | xhd :: xtl, yhd :: ytl -> maybe (fun ztl -> (xhd, yhd) :: ztl) (zip_2 xtl ytl)
+  | _, _ -> None;;
 
 (*......................................................................
 Exercise 15: For the energetic, reimplement max_list along the same
@@ -296,7 +301,11 @@ function always passes along the None.
 ......................................................................*)
 
 let rec max_list_2 (lst : int list) : int option =
-  failwith "max_list not implemented" ;;
+  match lst with
+  | [] -> None
+  | [x] -> Some x
+  | hd :: tl -> maybe (fun max_tl -> if hd > max_tl then hd else max_tl) (max_list_2 tl) ;;
+
 
 (*======================================================================
 Part 5: Record types
@@ -341,10 +350,12 @@ For example:
  {name = "Sandy"; id = 5; course = "cs51"}]
 ......................................................................*)
 
-let transcript (enrollments : enrollment list)
+let rec transcript (enrollments : enrollment list)
                (student : int)
              : enrollment list =
-  failwith "transcript not implemented" ;;
+  match enrollments with
+  | hd :: tl -> if hd.id = student then hd :: (transcript tl student) else (transcript tl student)
+  | [] -> [] ;;
 
 (*......................................................................
 Exercise 17: Define a function called ids that takes an enrollment
@@ -358,7 +369,11 @@ For example:
 ......................................................................*)
 
 let ids (enrollments: enrollment list) : int list =
-  failwith "ids not implemented" ;;
+  let rec idlist l =
+    match l with
+    | hd :: tl -> hd.id :: (idlist tl)
+    | [] -> [] in
+  List.sort_uniq compare (idlist enrollments) ;;
 
 (*......................................................................
 Exercise 18: Define a function called verify that determines whether all
@@ -371,4 +386,8 @@ For example:
 ......................................................................*)
 
 let verify (enrollments : enrollment list) : bool =
-  failwith "verify not implemented" ;;
+  List.for_all
+    (fun id ->
+       let student = transcript enrollments id in
+       List.for_all (fun x -> (List.hd student).name = x.name) student)
+    (ids enrollments) ;;
